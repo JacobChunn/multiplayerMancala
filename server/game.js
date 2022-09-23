@@ -1,3 +1,5 @@
+const { GRID_SIZE } = require('./constants');
+
 module.exports = {
     initGame
   }
@@ -11,10 +13,11 @@ function createGameState(pits, marbles) {
     return {
       players: [{
         pits: Array(pits).fill(marbles),
-        score_pile: 0
+        scorePile: 0
       }, {
         pits: Array(pits).fill(marbles),
-        score_pile: 0
-      }]
+        scorePile: 0
+      }],
+	  pits: pits
     };
   }

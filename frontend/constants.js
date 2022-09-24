@@ -13,6 +13,9 @@ const PIT_VERTICAL_PROP = 1.0 - 2 * (SCORE_PILE_PROP);
 const PIT_HORIZONTAL_PROP = 1.0;
 const PIT_GAP = 0.2; // The additional gap between the columns of pits
 
+// The proportions of the pits and score_piles themselves
+const PIT_RAD = 50;
+
 export {
 	BOARD_WIDTH_PROP,
 	BOARD_HEIGHT_PROP,
@@ -22,5 +25,6 @@ export {
 	SCORE_PILE_HORIZONTAL_PROP,
 	PIT_VERTICAL_PROP,
 	PIT_HORIZONTAL_PROP,
-	PIT_GAP
+	PIT_GAP,
+	PIT_RAD
 };

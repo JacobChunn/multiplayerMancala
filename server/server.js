@@ -1,5 +1,5 @@
 const io = require('socket.io')();
-const { initGame } = require('./game');
+const { initGame, makeTurn, getWinner } = require('./game');
 const { makeid } = require('./utils');
 
 const state = {};
@@ -35,8 +35,8 @@ io.on('connection', client => {
 	  clientRooms[client.id] = roomName;
   
 	  client.join(roomName);
-	  client.number = 2;
-	  client.emit('init', 2);
+	  client.number = 1;
+	  client.emit('init', 1);
 	  
 	  startGameInterval(roomName);
 	}
@@ -49,8 +49,8 @@ io.on('connection', client => {
 	  state[roomName] = initGame();
   
 	  client.join(roomName);
-	  client.number = 1;
-	  client.emit('init', 1);
+	  client.number = 0;
+	  client.emit('init', 0);
 	}
   
 	function handleClick(pit) {
@@ -59,33 +59,27 @@ io.on('connection', client => {
 		return;
 	  }
 	  try {
-		keyCode = parseInt(keyCode);
+		pit = parseInt(pit);
 	  } catch(e) {
 		console.error(e);
 		return;
 	  }
   
-	  const vel = getUpdatedVelocity(keyCode);
-  
-	  if (vel) {
-		state[roomName].players[client.number - 1].vel = vel;
+	  if (state[roomName].playerTurn == client.number) {
+		if (makeTurn(state[roomName], pit)) {
+			emitGameState(roomName, state[roomName]);
+			const winner = getWinner(state[roomName]);
+			if (winner != -1) {
+				emitGameOver(roomName, winner);
+			}
+		} else {
+			client.emit('invalidTurn');
+		}
+	  } else {
+		client.emit('notClientsTurn');
 	  }
 	}
   });
-  
-  function startGameInterval(roomName) {
-	const intervalId = setInterval(() => {
-	  const winner = gameLoop(state[roomName]);
-	  
-	  if (!winner) {
-		emitGameState(roomName, state[roomName])
-	  } else {
-		emitGameOver(roomName, winner);
-		state[roomName] = null;
-		clearInterval(intervalId);
-	  }
-	}, 1000 / FRAME_RATE);
-  }
   
   function emitGameState(room, gameState) {
 	// Send this event to everyone in the room.

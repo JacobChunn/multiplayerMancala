@@ -66,7 +66,7 @@ io.on('connection', client => {
 	  }
   
 	  if (state[roomName].playerTurn == client.number) {
-		if (makeTurn(state[roomName], pit)) {
+		if (makeTurn(state[roomName], pit)) { // rotate turns?
 			emitGameState(roomName, state[roomName]);
 			const winner = getWinner(state[roomName]);
 			if (winner != -1) {

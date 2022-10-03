@@ -23,6 +23,9 @@ function createGameState(pits, marbles) {
     };
   }
 
+// Check if a move can be made with the provided pit. Perfrom move and 
+// return true if it is next players' turn, false if the turn remains
+// with the current player.
 function makeTurn(state, pit) {
 
 }

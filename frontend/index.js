@@ -6,6 +6,8 @@ import { BOARD_WIDTH_PROP, BOARD_HEIGHT_PROP, BOARD_HORIZONTAL_OFFSET,
 const BG_COLOR = "#90EE90";
 const BOARD_COLOR = "#DEB887";
 
+const socket = io("http://localhost:3000");
+
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
 socket.on('gameOver', handleGameOver);

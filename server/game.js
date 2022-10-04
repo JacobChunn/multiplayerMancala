@@ -1,7 +1,9 @@
 const { GRID_SIZE } = require('./constants');
 
 module.exports = {
-    initGame
+    initGame,
+	makeTurn,
+	getWinner
   }
 
 function initGame(pits, marbles) {
@@ -19,15 +21,24 @@ function createGameState(pits, marbles) {
         scorePile: 0
       }],
 	  pits: pits,
-	  playerTurn: 0 // Could make random number
+	  playerTurn: 0 // Could initalize to a random number
     };
   }
 
 // Check if a move can be made with the provided pit. Perfrom move and 
-// return true if it is next players' turn, false if the turn remains
-// with the current player.
+// return true if move was able to be played, false if it was not able
+// to be played.
 function makeTurn(state, pit) {
+	// Check if pit is a valid pit
+	if (pit < 0 || pit > state.pits - 1) return false;
 
+	// Check if pit is empty
+	if (state.players[state.playerTurn].pits[pit] == 0) return false;
+
+	// Call move marbles
+	moveMarbles(state, state.playerTurn, state.playerTurn, pit);
+
+	return true;
 }
 
 function moveMarbles(state, playerTurn, playerSide, pit) {
@@ -44,11 +55,11 @@ function moveMarbles(state, playerTurn, playerSide, pit) {
 		marblesToMove--;
 	}
 	if (pos[1] == -1) {
-		return 0;
+		return;
 	} else if (state.player[pos[0]].pits[pos[1]] != 0) {
 		moveMarbles(state, playerTurn, pos[0], pos[1]);
 	}
-	return 1;
+	rotateTurns(state);
 }
 
 function getNextPlayer(playerNum) {
@@ -75,9 +86,56 @@ function getNextPile(playerSide, pit, maxPits, playerTurn) {
 }
 
 function getWinner(state) {
+	if (!gameIsOver(state)) return -1;
 
+	for (var i = 0; i < state.players.length; i++) {
+		movePlayerMarblesToScorePile(state, i);
+	}
+
+	return getPlayerWithHighestScore(state);
 }
 
-function rotateTurns() {
+function gameIsOver(state) {
+	for (var i = 0; i < state.players.length; i++) {
+		if(playerPitsAreEmpty(state, i)) {
+			return true;
+		}
+	}
+}
 
+function getPlayerWithHighestScore(state) {
+	var player = -1;
+	var score = -1;
+	for (var i = 0; i < state.players.length; i++) {
+		if (score < state.players[i].scorePile) {
+			player = i;
+			score = state.players[i].scorePile;
+		}
+	}
+	return player;
+}
+
+function movePlayerMarblesToScorePile(state, player) {
+	var marbles = 0;
+	for (var i = 0; i < state.pits; i++) {
+		marbles += state.players[player].pits[i];
+		state.players[player].pits[i] = 0;
+	}
+	state.players[player].scorePile += marbles;
+}
+
+function playerPitsAreEmpty(state, player) {
+	for (var i = 0; i < state.pits; i++) {
+		if (state.players[player].pits[i] != 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function rotateTurns(state) {
+	state.playerTurn++;
+	if (state.playerTurn > state.players.length - 1) {
+		state.playerTurn = 0;
+	}
 }

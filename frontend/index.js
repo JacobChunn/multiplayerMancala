@@ -192,8 +192,8 @@ function reset() {
 function click(event) {
     // Determine which (if any) of marble pits were clicked
     // Emit turn event (make server check if it is able to be played or is players turn)
-	for (let i in clickablePits.length) {
-		if (ctx.isPointInPath(i, event.offsetX, event.offsetY)) {
+	for (var  i = 0; i < clickablePits.length; i++) {
+		if (ctx.isPointInPath(clickablePits[i], event.offsetX, event.offsetY)) {
 			socket.emit('click', i)
 		}
 		break;

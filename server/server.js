@@ -1,11 +1,25 @@
-const io = require('socket.io')();
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
+const io = new Server(server);
+
 const { initGame, makeTurn, getWinner } = require('./game');
 const { makeid } = require('./utils');
 
 const state = {};
 const clientRooms = {};
 
+app.use(express.static('../frontend'));
+
+server.listen(3000, () => {
+	console.log('listening on *:3000');
+});
+
 io.on('connection', client => {
+
+	console.log('a user connected');
 
 	client.on('click', handleClick);
 	client.on('newGame', handleNewGame);
@@ -91,6 +105,3 @@ io.on('connection', client => {
 	io.sockets.in(room)
 	  .emit('gameOver', JSON.stringify({ winner }));
   }
-  
-  io.listen(process.env.PORT || 3000);
-  

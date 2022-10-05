@@ -9,7 +9,7 @@ const BOARD_VERTICAL_OFFSET = 0.0;
 // The proportions of the score_pile and pit placements
 const SCORE_PILE_VERTICAL_PROP = 1.0 / 8.0;
 const SCORE_PILE_HORIZONTAL_PROP = 1.0;
-const PIT_VERTICAL_PROP = 1.0 - 2 * (SCORE_PILE_PROP);
+const PIT_VERTICAL_PROP = 1.0 - 2 * (SCORE_PILE_VERTICAL_PROP);
 const PIT_HORIZONTAL_PROP = 1.0;
 const PIT_GAP = 0.2; // The additional gap between the columns of pits
 

@@ -5,11 +5,13 @@ import { BOARD_WIDTH_PROP, BOARD_HEIGHT_PROP, BOARD_HORIZONTAL_OFFSET,
 
 const BG_COLOR = "#90EE90";
 const BOARD_COLOR = "#DEB887";
+const PIT_COLOR = "#000000";
 
 const socket = io("127.0.0.1:3000");
 
 socket.on('init', handleInit);
 socket.on('gameState', handleGameState);
+socket.on('gameStart', handleStartGame);
 socket.on('gameOver', handleGameOver);
 socket.on('gameCode', handleGameCode);
 socket.on('unknownCode', handleUnknownCode);
@@ -21,19 +23,23 @@ const newGameBtn = document.getElementById('newGameButton');
 const joinGameBtn = document.getElementById('joinGameButton');
 const gameCodeInput = document.getElementById('gameCodeInput');
 const gameCodeDisplay = document.getElementById('gameCodeDisplay');
+const gameCodeContainer = document.getElementById('gameCodeContainer');
 
 newGameBtn.addEventListener('click', newGame);
 joinGameBtn.addEventListener('click', joinGame);
 
 function newGame() {
     socket.emit('newGame');
-    init();
+	gameScreen.style.display = "block";
+	initialScreen.style.display = "none";
 }
 
 function joinGame() {
     const code = gameCodeInput.value;
     socket.emit('joinGame', code);
-    init();
+	gameScreen.style.display = "block";
+	gameCodeContainer.style.display = "none";
+	initialScreen.style.display = "none";
 }
 
 let canvas, ctx;
@@ -55,10 +61,10 @@ let pitTotalDistance;
 let scorePileHorizontalDistance;
 let scorePileVerticalDistance;
 
-function init(state) {
-    initialScreen.style.display = "none";
-    gameScreen.style.display = "block";
-  
+function handleStartGame(state) {
+	state = JSON.parse(state);
+
+	gameCodeContainer.style.display = "none";
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
 
@@ -102,6 +108,7 @@ function init(state) {
 
     canvas.addEventListener("click", click);
     gameActive = true;
+	requestAnimationFrame(() => paintGame2P(state));
 }
 
 function paintGame2P(state) {
@@ -112,29 +119,31 @@ function paintGame2P(state) {
 	ctx.fillRect(boardHorizontalStartPos, boardVerticalStartPos,
 		boardWidth, boardHeight);
 	
+	console.log(state.pits);
 
 	for (var i = 0; i < state.pits; i++) {
 		ctx.textAlign = "center";
+		ctx.fillStyle = PIT_COLOR;
 		// Paint the pits
 		ctx.fillText(
-			"" + state.player[playerNumber].pits[i],
+			"" + state.players[playerNumber].pits[i],
 			pitCoords[playerNumber][i][0],
 			pitCoords[playerNumber][i][1]
 		);
 		ctx.fillText(
-			"" + state.player[(playerNumber + 1) % 2].pits[i],
+			"" + state.players[(playerNumber + 1) % 2].pits[i],
 			pitCoords[(playerNumber + 1) % 2][i][0],
 			pitCoords[(playerNumber + 1) % 2][i][1]
 		);
 		
 		// Paint the score piles
 		ctx.fillText(
-			"" + state.player[playerNumber].scorePile,
+			"" + state.players[playerNumber].scorePile,
 			scorePileCoords[playerNumber][0],
 			scorePileCoords[playerNumber][1]
 		);
 		ctx.fillText(
-			"" + state.player[(playerNumber + 1) % 2].scorePile,
+			"" + state.players[(playerNumber + 1) % 2].scorePile,
 			scorePileCoords[(playerNumber + 1) % 2][0],
 			scorePileCoords[(playerNumber + 1) % 2][1]
 		);

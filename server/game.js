@@ -27,6 +27,8 @@ function createGameState(pits, marbles) {
 // return true if move was able to be played, false if it was not able
 // to be played.
 function makeTurn(state, pit) {
+	console.log("makeTurn: " + JSON.stringify(state, null, 4) + "\n");
+	console.log("Pit of turn: " + pit + "\n");
 	// Check if pit is a valid pit
 	if (pit < 0 || pit > state.pits - 1) return false;
 
@@ -40,24 +42,27 @@ function makeTurn(state, pit) {
 }
 
 function moveMarbles(state, playerTurn, playerSide, pit) {
-	let marblesToMove = state.player[playerSide].pits[pit];
-	state.player[playerSide].pits[pit] = 0;
+	let marblesToMove = state.players[playerSide].pits[pit];
+	state.players[playerSide].pits[pit] = 0;
 	let pos = [playerSide, pit];
 	while (marblesToMove != 0) {
 		pos = getNextPile(pos[0], pos[1], state.pits, playerTurn);
 		if (pos[1] == -1) {
-			state.player[pos[0]].scorePile++;
+			state.players[pos[0]].scorePile++;
 		} else {
-			state.player[pos[0]].pits[pos[1]]++;
+			state.players[pos[0]].pits[pos[1]]++;
 		}
 		marblesToMove--;
 	}
 	if (pos[1] == -1) {
+		console.log("End State | Score Pile: " + JSON.stringify(state, null, 4) + "\n");
 		return;
-	} else if (state.player[pos[0]].pits[pos[1]] != 0) {
+	} else if (state.players[pos[0]].pits[pos[1]] != 0) {
 		moveMarbles(state, playerTurn, pos[0], pos[1]);
+		return;
 	}
 	rotateTurns(state);
+	console.log("End State | Empty Pit: " + JSON.stringify(state, null, 4) + "\n");
 }
 
 function getNextPlayer(playerNum) {

@@ -27,12 +27,7 @@ io.on('connection', client => {
 	client.on('joinGame', handleJoinGame);
   
 	function handleJoinGame(roomName) {
-		console.log('handleJoinGame 1: \"' + roomName + '\"');
 		const room = io.sockets.adapter.rooms[roomName];
-
-		console.log("Has: " + io.sockets.adapter.rooms.has(roomName));
-		console.log("Map: " + io.sockets.adapter.rooms);
-		console.log("Room: " + io.sockets.adapter.rooms.get(roomName).size);
 
 		let numClients = 0;
 		if (io.sockets.adapter.rooms.has(roomName)) {
@@ -54,9 +49,6 @@ io.on('connection', client => {
 		client.emit('init', 1);
 		
 		startGame(roomName, state[roomName]);
-		console.log(state[roomName]);
-
-		console.log('handleJoinGame Last');
 	}
 
 	function handleNewGame() {
@@ -69,8 +61,6 @@ io.on('connection', client => {
 		client.join(roomName);
 		client.number = 0;
 		client.emit('init', 0);
-
-		console.log('handleNewGame: \"' + roomName + '\"');
 	}
   
 	function handleClick(pit) {

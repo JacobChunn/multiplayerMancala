@@ -1,11 +1,13 @@
 import { BOARD_WIDTH_PROP, BOARD_HEIGHT_PROP, BOARD_HORIZONTAL_OFFSET,
 	BOARD_VERTICAL_OFFSET, SCORE_PILE_VERTICAL_PROP, SCORE_PILE_HORIZONTAL_PROP,
-	PIT_VERTICAL_PROP, PIT_HORIZONTAL_PROP, PIT_GAP, PIT_RAD
+	PIT_VERTICAL_DISTANCE_PROP_FROM_CENTER, PIT_HORIZONTAL_DISTANCE_PROP_FROM_CENTER,
+	PIT_RAD
 	} from '/constants.js';
 
 const BG_COLOR = "#90EE90";
 const BOARD_COLOR = "#DEB887";
-const PIT_COLOR = "#000000";
+const MARBLE_COLOR = "#000000";
+const PIT_COLOR = "#C0B396";
 
 const socket = io("127.0.0.1:3000");
 
@@ -48,7 +50,7 @@ let gameActive = false;
 
 let pitCoords = [[], []];
 let scorePileCoords = [];
-let clickablePits = [];
+let pitsArcs = [[], []];
 
 let boardHorizontalStartPos;
 let boardVerticalStartPos;
@@ -56,7 +58,7 @@ let boardWidth;
 let boardHeight;
 
 let pitVerticalDistance;
-let pitHorizontalDistance;
+let pitHorizontalDistanceFromCenter;
 let pitTotalDistance;
 let scorePileHorizontalDistance;
 let scorePileVerticalDistance;
@@ -75,40 +77,67 @@ function handleStartGame(state) {
 	boardWidth = canvas.width * BOARD_WIDTH_PROP;
 	boardHeight = canvas.height * BOARD_HEIGHT_PROP;
 
-	pitVerticalDistance = canvas.height * PIT_VERTICAL_PROP / (state.pits + 1);
-	pitHorizontalDistance = canvas.width * (PIT_HORIZONTAL_PROP - PIT_GAP)
-		/ (state.players.length + 1);
-	pitTotalDistance = canvas.height * PIT_VERTICAL_PROP;
-	scorePileHorizontalDistance = canvas.width * SCORE_PILE_HORIZONTAL_PROP / 2;
-	scorePileVerticalDistance = canvas.width * SCORE_PILE_VERTICAL_PROP / 2;
+	boardHorizontalCenter = boardHorizontalStartPos + (boardWidth / 2);
+	boardVerticalCenter = boardVerticalStartPos + (boardHeight / 2)
+
+	pitVerticalDistanceFromCenter = boardHeight * PIT_VERTICAL_DISTANCE_PROP_FROM_CENTER;
+	pitHorizontalDistanceFromCenter = boardWidth * PIT_HORIZONTAL_DISTANCE_PROP_FROM_CENTER;
+
+	scorePileHorizontalDistance = boardWidth * SCORE_PILE_HORIZONTAL_PROP;
+	scorePileVerticalDistance = boardHeight * SCORE_PILE_VERTICAL_PROP;
 
 	for (var i = 0; i < state.players.length; i++) {
 		scorePileCoords.push([
 			boardHorizontalStartPos + scorePileHorizontalDistance,
-			boardVerticalStartPos + scorePileVerticalDistance * 
-			((3 + pitTotalDistance) ** ((i + 1) % 2))
+			boardVerticalStartPos + (scorePileVerticalDistance * 
+				(3 + pitTotalDistance)) ** ((i + playerNumber) % 2)
 		]);
+		/*
 		for (var j = 0; j < state.pits; j++) {
+			// The pit coordinates of the current player is pushed to pitCoords first.
+			let player = (i + playerNumber) % 2;
+			let x = boardHorizontalCenter;
+			
+
+
 			pitCoords[i].push([
-				boardHorizontalStartPos + pitHorizontalDistance * ((2 + PIT_GAP) ** i),
-				boardVerticalStartPos + pitVerticalDistance * (j + 1)
+				boardHorizontalCenter + pitHorizontalDistanceFromCenter * Math.pow(-1, (player + 1) % 2),
+				boardVerticalCenter + pitVerticalDistanceFromCenter * (j + 1)
 			]);
 		}
+		*/
 	}
+	distributePits(pitCoords, boardHorizontalCenter, boardVerticalCenter,
+		state.players.length, state.pits, pitHorizontalDistanceFromCenter,
+		scorePileVerticalDistance);
 
-	for (var i = 0; i < state.pits; i++) {
-		clickablePits.push(new Path2D());
-		clickablePits[i].arc(
-			pitCoords[0][i][0],
-			pitCoords[0][i][1],
-			PIT_RAD,
-			0,
-			2 * Math.PI);
+	for (var i = 0; i < state.players.length; i++) {
+		for (var j = 0; j < state.pits; j++) {
+			pitsArcs[(i + playerNumber) % 2].push(new Path2D());
+			pitsArcs[(i + playerNumber) % 2][j].arc(
+				pitCoords[(i + playerNumber) % 2][j][0],
+				pitCoords[(i + playerNumber) % 2][j][1],
+				PIT_RAD,
+				0,
+				2 * Math.PI);
+		}
 	}
 
     canvas.addEventListener("click", click);
     gameActive = true;
 	requestAnimationFrame(() => paintGame2P(state));
+}
+
+function distributePits(arr, centerX, centerY, pitsX, pitsY, pitDistanceX, pitDistanceY) {
+	let firstPitX = centerX - (pitsX - 1) / 2 * pitDistanceX;
+	let firstPitY = centerY - (pitsY - 1) / 2 * pitDistanceY;
+
+	for (var i = 0; i < pits; i++) {
+		arr[i] = [
+			firstPitX + pitDistanceX * i,
+			firstPitY + pitDistanceY * i
+		]
+	}
 }
 
 function paintGame2P(state) {
@@ -125,30 +154,35 @@ function paintGame2P(state) {
 		ctx.textAlign = "center";
 		ctx.fillStyle = PIT_COLOR;
 		// Paint the pits
-		ctx.fillText(
-			"" + state.players[playerNumber].pits[i],
-			pitCoords[playerNumber][i][0],
-			pitCoords[playerNumber][i][1]
-		);
-		ctx.fillText(
-			"" + state.players[(playerNumber + 1) % 2].pits[i],
-			pitCoords[(playerNumber + 1) % 2][i][0],
-			pitCoords[(playerNumber + 1) % 2][i][1]
-		);
-		
-		// Paint the score piles
-		ctx.fillText(
-			"" + state.players[playerNumber].scorePile,
-			scorePileCoords[playerNumber][0],
-			scorePileCoords[playerNumber][1]
-		);
-		ctx.fillText(
-			"" + state.players[(playerNumber + 1) % 2].scorePile,
-			scorePileCoords[(playerNumber + 1) % 2][0],
-			scorePileCoords[(playerNumber + 1) % 2][1]
-		);
+		paintPit(state, 0, i, 0, 1);
+		paintPit(state, 1, i, 0, 1);
 	}
+	// Paint the score piles
+	paintScorePile(state, playerNumber, 0, 1);
+	paintScorePile(state, (playerNumber + 1) % 2, 0, 1);
+}
 
+function paintPit(state, player, pit, xIndex, yIndex) {
+	ctx.fillStyle = PIT_COLOR;
+	ctx.fill(pitsArcs[player][pit]);
+
+	ctx.textAlign = "center";
+	ctx.fillStyle = MARBLE_COLOR;
+	ctx.fillText(
+		"" + state.players[player].pits[pit],
+		pitCoords[player][pit][xIndex],
+		pitCoords[player][pit][yIndex]
+	);
+}
+
+function paintScorePile(state, player, xIndex, yIndex) {
+	ctx.fillText(
+		"" + state.players[player].scorePile,
+		scorePileCoords[player][xIndex],
+		scorePileCoords[player][yIndex]
+	);
+	console.log("Player: " + player + ": " + state.players[player].scorePile + "\n");
+	console.log("X: " + scorePileCoords[player][xIndex] + " Y: " + scorePileCoords[player][yIndex] + "\n");
 }
 
 function handleInit(number) {
@@ -203,10 +237,10 @@ function reset() {
 function click(event) {
     // Determine which (if any) of marble pits were clicked
     // Emit turn event (make server check if it is able to be played or is players turn)
-	for (var  i = 0; i < clickablePits.length; i++) {
-		if (ctx.isPointInPath(clickablePits[i], event.offsetX, event.offsetY)) {
+	for (var  i = 0; i < pitsArcs[0].length; i++) {
+		if (ctx.isPointInPath(pitsArcs[0][i], event.offsetX, event.offsetY)) {
 			socket.emit('click', i)
+			break;
 		}
-		break;
 	}
 }

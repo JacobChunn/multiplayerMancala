@@ -48,7 +48,7 @@ let canvas, ctx;
 let playerNumber;
 let gameActive = false;
 
-let pitCoords = [[], []];
+let pitCoords;
 let scorePileCoords = [];
 let pitsArcs = [[], []];
 
@@ -86,6 +86,8 @@ function handleStartGame(state) {
 	scorePileHorizontalDistance = boardWidth * SCORE_PILE_HORIZONTAL_PROP;
 	scorePileVerticalDistance = boardHeight * SCORE_PILE_VERTICAL_PROP;
 
+	pitCoords = Array(state.players.length);
+
 	for (var i = 0; i < state.players.length; i++) {
 		scorePileCoords.push([
 			boardHorizontalStartPos + scorePileHorizontalDistance,
@@ -106,7 +108,9 @@ function handleStartGame(state) {
 			]);
 		}
 		*/
+		pitCoords[i] = Array(state.pits);
 	}
+
 	distributePits(pitCoords, boardHorizontalCenter, boardVerticalCenter,
 		state.players.length, state.pits, pitHorizontalDistanceFromCenter,
 		scorePileVerticalDistance);

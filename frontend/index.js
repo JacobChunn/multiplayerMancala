@@ -1,6 +1,6 @@
 import { BOARD_WIDTH_PROP, BOARD_HEIGHT_PROP, BOARD_HORIZONTAL_OFFSET,
-	BOARD_VERTICAL_OFFSET, SCORE_PILE_VERTICAL_PROP, SCORE_PILE_HORIZONTAL_PROP,
-	PIT_VERTICAL_DISTANCE_PROP_FROM_CENTER, PIT_HORIZONTAL_DISTANCE_PROP_FROM_CENTER,
+	BOARD_VERTICAL_OFFSET, SCORE_PILE_DISTANCE_FROM_PITS_PROP,
+	PIT_AVAILABLE_VERTICAL_SPACE, PIT_HORIZONTAL_DISTANCE_BETWEEN_PITS_PROP,
 	PIT_RAD
 	} from '/constants.js';
 
@@ -60,12 +60,11 @@ let boardHeight;
 let boardHorizontalCenter;
 let boardVerticalCenter;
 
-let pitVerticalDistanceFromCenter;
-let pitHorizontalDistanceFromCenter;
+let pitHorizontalDistanceBetweenPits;
+let pitAvailableVerticalSpace;
 let pitTotalDistance;
 
-let scorePileHorizontalDistance;
-let scorePileVerticalDistance;
+let scorePileDistanceFromPits;
 
 function handleStartGame(state) {
 	console.log("Game started!");
@@ -85,11 +84,10 @@ function handleStartGame(state) {
 	boardHorizontalCenter = boardHorizontalStartPos + (boardWidth / 2);
 	boardVerticalCenter = boardVerticalStartPos + (boardHeight / 2)
 
-	pitVerticalDistanceFromCenter = boardHeight * PIT_VERTICAL_DISTANCE_PROP_FROM_CENTER;
-	pitHorizontalDistanceFromCenter = boardWidth * PIT_HORIZONTAL_DISTANCE_PROP_FROM_CENTER;
+	pitHorizontalDistanceBetweenPits = boardWidth * PIT_HORIZONTAL_DISTANCE_BETWEEN_PITS_PROP;
+	pitAvailableVerticalSpace = boardHeight * PIT_AVAILABLE_VERTICAL_SPACE;
 
-	scorePileHorizontalDistance = boardWidth * SCORE_PILE_HORIZONTAL_PROP;
-	scorePileVerticalDistance = boardHeight * SCORE_PILE_VERTICAL_PROP;
+	scorePileDistanceFromPits = boardWidth * SCORE_PILE_DISTANCE_FROM_PITS_PROP;
 
 	pitCoords = new Array(state.players.length);
 
@@ -99,27 +97,18 @@ function handleStartGame(state) {
 			boardVerticalStartPos + (scorePileVerticalDistance * 
 				(3 + pitTotalDistance)) ** ((i + playerNumber) % 2)
 		]);
-		/*
-		for (var j = 0; j < state.pits; j++) {
-			// The pit coordinates of the current player is pushed to pitCoords first.
-			let player = (i + playerNumber) % 2;
-			let x = boardHorizontalCenter;
-			
-
-
-			pitCoords[i].push([
-				boardHorizontalCenter + pitHorizontalDistanceFromCenter * Math.pow(-1, (player + 1) % 2),
-				boardVerticalCenter + pitVerticalDistanceFromCenter * (j + 1)
-			]);
-		}
-		*/
 		pitCoords[i] = new Array(state.pits);
+		for ( var j = 0; j < state.pits; j++) {
+			pitCoords[i][j] = new Array(2);
+		}
 	}
-
+	distributePitsX(pitCoords, boardHorizontalCenter, pitHorizontalDistanceBetweenPits);
+	distributePitsY(pitCoords, boardVerticalCenter, pitAvailableVerticalSpace);
+/*
 	distributePits(pitCoords, boardHorizontalCenter, boardVerticalCenter,
-		state.players.length, state.pits, pitHorizontalDistanceFromCenter,
+		state.players.length, state.pits, pitHorizontalDistanceBetweenPits,
 		scorePileVerticalDistance);
-
+*/
 	for (var i = 0; i < state.players.length; i++) {
 		for (var j = 0; j < state.pits; j++) {
 			pitsArcs[(i + playerNumber) % 2].push(new Path2D());
@@ -136,18 +125,58 @@ function handleStartGame(state) {
     gameActive = true;
 	requestAnimationFrame(() => paintGame2P(state));
 }
-
-function distributePits(arr, centerX, centerY, pitsX, pitsY, pitDistanceX, pitDistanceY) {
+/*
+function distributePits(pitArr, centerX, centerY, pitsX, pitsY, pitDistanceX, pitDistanceY) {
 	let firstPitX = centerX - (pitsX - 1) / 2 * pitDistanceX;
 	let firstPitY = centerY - (pitsY - 1) / 2 * pitDistanceY;
 
 	for (var i = 0; i < pitsX; i++) {
 		for (var j = 0; j < pitsY; j++) {
-			arr[i][j] = [
+			pitArr[i][j] = [
 				firstPitX + pitDistanceX * i,
 				firstPitY + pitDistanceY * j
 			];
 		}
+	}
+}
+*/
+
+function distributePitsX(pitArr, centerX, pitDistanceX) {
+	let firstPitX = centerX - (pitArr.length - 1) / 2 * pitDistanceX;
+
+	for (var i = 0; i < pitArr.length; i++) {
+		for (var j = 0; j < pitArr[i].length; j++) {
+			pitArr[i][j][0] = firstPitX + pitDistanceX * i;
+		}
+	}
+}
+
+function distributePitsY(pitArr, centerY, availableVerticalSpace) {
+	for (var i = 0; i < pitArr.length; i++) {
+		let pitDistanceY = availableVerticalSpace / (pitArr[i].length + 1);
+		for (var j = 0; j < pitArr[i].length; j++) {
+			let firstPitY = centerY - (pitArr[i].length - 1) / 2 * pitDistanceY;
+			pitArr[i][j][1] = firstPitY + pitDistanceY * j;
+		} 
+	}
+}
+
+function distributeScorePiles(scorePileArr, centerY, pitVerticalSpace, pitDistance,
+	distanceFromPitSpace) {
+	if (pitArr.length == 0) return;
+
+	let distanceBetweenPits = 0;
+	let topOfVerticalSpace = centerY - (pitVerticalSpace / 2);
+	let bottomOfVerticalSpace = centerY + (pitVerticalSpace / 2);
+
+	if (pitArr.length > 1) {
+		if (pitArr[0].length > 0 && pitArr[1].length > 0) {
+			distanceBetweenPits = pitArr[0][0][0] - pitArr[1][0][0];
+		}
+	}
+
+	for (var i = 0; i < pitArr.length; i++) {
+
 	}
 }
 

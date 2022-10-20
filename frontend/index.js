@@ -49,7 +49,7 @@ let playerNumber;
 let gameActive = false;
 
 let pitCoords;
-let scorePileCoords = [];
+let scorePileCoords;
 let pitsArcs = [[], []];
 
 let boardHorizontalStartPos;
@@ -90,13 +90,16 @@ function handleStartGame(state) {
 	scorePileDistanceFromPits = boardWidth * SCORE_PILE_DISTANCE_FROM_PITS_PROP;
 
 	pitCoords = new Array(state.players.length);
+	scorePileCoords = new Array(state.players.length);
 
 	for (var i = 0; i < state.players.length; i++) {
+		/*
 		scorePileCoords.push([
 			boardHorizontalStartPos + scorePileHorizontalDistance,
 			boardVerticalStartPos + (scorePileVerticalDistance * 
 				(3 + pitTotalDistance)) ** ((i + playerNumber) % 2)
 		]);
+		*/
 		pitCoords[i] = new Array(state.pits);
 		for ( var j = 0; j < state.pits; j++) {
 			pitCoords[i][j] = new Array(2);
@@ -104,6 +107,8 @@ function handleStartGame(state) {
 	}
 	distributePitsX(pitCoords, boardHorizontalCenter, pitHorizontalDistanceBetweenPits);
 	distributePitsY(pitCoords, boardVerticalCenter, pitAvailableVerticalSpace);
+	distributeScorePiles(scorePileCoords, boardHorizontalCenter, boardVerticalCenter,
+		pitAvailableVerticalSpace, pitHorizontalDistanceBetweenPits, scorePileDistanceFromPits);
 /*
 	distributePits(pitCoords, boardHorizontalCenter, boardVerticalCenter,
 		state.players.length, state.pits, pitHorizontalDistanceBetweenPits,
@@ -161,23 +166,41 @@ function distributePitsY(pitArr, centerY, availableVerticalSpace) {
 	}
 }
 
-function distributeScorePiles(scorePileArr, centerY, pitVerticalSpace, pitDistance,
+function distributeScorePiles(scorePileArr, centerY, centerX, pitVerticalSpace, pitDistanceX,
 	distanceFromPitSpace) {
-	if (pitArr.length == 0) return;
 
-	let distanceBetweenPits = 0;
-	let topOfVerticalSpace = centerY - (pitVerticalSpace / 2);
-	let bottomOfVerticalSpace = centerY + (pitVerticalSpace / 2);
+	let upperY = centerY - (pitVerticalSpace / 2) - distanceFromPitSpace;
+	let lowerY = centerY + (pitVerticalSpace / 2) + distanceFromPitSpace;
 
-	if (pitArr.length > 1) {
-		if (pitArr[0].length > 0 && pitArr[1].length > 0) {
-			distanceBetweenPits = pitArr[0][0][0] - pitArr[1][0][0];
+	// firstScorePileX is the x coordinate relative to centerX, calculated
+	// by adding the first pit x value to half of the pitDistanceX
+	let firstScorePileX = centerX - (scorePileArr.length - 1) * pitDistanceX / 2 + pitDistanceX / 2;
+
+	if (scorePileArr.length == 1) {
+		scorePileArr[0] = [
+			firstScorePileX,
+			upperY
+		];
+
+	} else if (scorePileArr.length == 2) {
+		scorePileArr[0] = [
+			firstScorePileX,
+			upperY
+		];
+		scorePileArr[1] = [
+			firstScorePileX,
+			lowerY
+		];
+
+	} else {
+		for (var i = 0; i < scorePileArr.length; i++) {
+			scorePileArr[i] = [
+				firstScorePileX + i * pitDistanceX,
+				i % 2 == 0 ? upperY : lowerY
+			];
 		}
 	}
 
-	for (var i = 0; i < pitArr.length; i++) {
-
-	}
 }
 
 function paintGame2P(state) {

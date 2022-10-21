@@ -27,8 +27,8 @@ function createGameState(pits, marbles) {
 // return true if move was able to be played, false if it was not able
 // to be played.
 function makeTurn(state, pit) {
-	console.log("makeTurn: " + JSON.stringify(state, null, 4) + "\n");
-	console.log("Pit of turn: " + pit + "\n");
+	//console.log("makeTurn: " + JSON.stringify(state, null, 4) + "\n");
+	//console.log("Pit of turn: " + pit + "\n");
 	// Check if pit is a valid pit
 	if (pit < 0 || pit > state.pits - 1) return false;
 
@@ -55,29 +55,32 @@ function moveMarbles(state, playerTurn, playerSide, pit) {
 		marblesToMove--;
 	}
 	if (pos[1] == -1) {
-		console.log("End State | Score Pile: " + JSON.stringify(state, null, 4) + "\n");
+		//console.log("End State | Score Pile: " + JSON.stringify(state, null, 4) + "\n");
+		console.log("Same Turn | Score Pile");
 		return;
-	} else if (state.players[pos[0]].pits[pos[1]] != 0) {
+	} else if (state.players[pos[0]].pits[pos[1]] != 1) {
+		console.log("Recursive Call");
 		moveMarbles(state, playerTurn, pos[0], pos[1]);
 		return;
 	}
+	console.log("Rotate Turns");
 	rotateTurns(state);
-	console.log("End State | Empty Pit: " + JSON.stringify(state, null, 4) + "\n");
+	//console.log("End State | Empty Pit: " + JSON.stringify(state, null, 4) + "\n");
 }
 
 function getNextPlayer(playerNum) {
 	return (playerNum + 1) % 2;
 }
 
-// Returns an array containig the player number and the pile position that
+// Returns an array containing the player number and the pile position that
 // comes after the one provided. Returns -1 if the next pile is a score pile.
 function getNextPile(playerSide, pit, maxPits, playerTurn) {
 	// Return the beginning of the next player's side if the current pile is:
 	// 1.) the score pile of the current side
 	// 2.) the last pit of a side of a player whose turn it is not
 	if (pit == -1 ||
-		pit == maxPits - 1 &&
-		playerTurn != playerSide
+		(pit == maxPits - 1 &&
+		playerTurn != playerSide)
 	) return [getNextPlayer(playerSide), 0];
 
 	// Return the score pile if the current pile is the last pit of

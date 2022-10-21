@@ -179,39 +179,37 @@ function distributeScorePiles(scorePileArr, centerY, centerX, pitVerticalSpace, 
 	if (scorePileArr.length == 1) {
 		scorePileArr[0] = [
 			firstScorePileX,
-			upperY
+			lowerY
 		];
 
 	} else if (scorePileArr.length == 2) {
 		scorePileArr[0] = [
 			firstScorePileX,
-			upperY
+			lowerY
 		];
 		scorePileArr[1] = [
 			firstScorePileX,
-			lowerY
+			upperY
 		];
 
 	} else {
 		for (var i = 0; i < scorePileArr.length; i++) {
 			scorePileArr[i] = [
 				firstScorePileX + i * pitDistanceX,
-				i % 2 == 0 ? upperY : lowerY
+				i % 2 == 0 ? lowerY : upperY
 			];
 		}
 	}
 
 }
 
-function paintGame2P(state) {
+function paintGame2P(state) { // TODO: paint every odd playerNum's pit column from down to up
     ctx.fillStyle = BG_COLOR;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	ctx.fillStyle = BOARD_COLOR;
 	ctx.fillRect(boardHorizontalStartPos, boardVerticalStartPos,
 		boardWidth, boardHeight);
-	
-	console.log(state.pits);
 
 	for (var i = 0; i < state.pits; i++) {
 		ctx.textAlign = "center";
